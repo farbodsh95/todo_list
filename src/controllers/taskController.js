@@ -188,74 +188,6 @@ const updateTask = async (req, res) => {
   }
 };
 
-// // Update a task
-// const updateTask = async (req, res) => {
-//   const { id, description, owner, state, order } = req.body;
-
-//   try {
-//     // Fetch the current task details
-//     const [tasks] = await pool.query("SELECT * FROM tasks WHERE id = ?", [id]);
-//     if (tasks.length === 0) {
-//       return res.status(404).json({ error: "Task not found" });
-//     }
-//     const currentTask = tasks[0];
-//     const currentColumnId = currentTask.column_id;
-
-//     let newColumnId = currentColumnId;
-//     if (state) {
-//       // Get the new column ID for the given state
-//       const [columns] = await pool.query(
-//         "SELECT id FROM columns WHERE state = ?",
-//         [state]
-//       );
-//       if (columns.length === 0) {
-//         return res.status(400).json({ error: "Invalid state" });
-//       }
-//       newColumnId = columns[0].id;
-//     }
-
-//     let newOrder = order;
-//     if (!newOrder) {
-//       // Get the maximum order in the new column if order is not provided
-//       const [maxOrder] = await pool.query(
-//         "SELECT MAX(`order`) as maxOrder FROM tasks WHERE column_id = ?",
-//         [newColumnId]
-//       );
-//       newOrder = (maxOrder[0].maxOrder || 0) + 1;
-//     }
-
-//     // Update the task
-//     const updateQuery = `
-//       UPDATE tasks SET
-//       description = COALESCE(?, description),
-//       owner = COALESCE(?, owner),
-//       column_id = COALESCE(?, column_id),
-//       \`order\` = COALESCE(?, \`order\`)
-//       WHERE id = ?;
-//     `;
-//     await pool.query(updateQuery, [
-//       description,
-//       owner,
-//       newColumnId,
-//       newOrder,
-//       id,
-//     ]);
-
-//     // Reorder tasks in the original column if the task has moved to a new column
-//     if (newColumnId !== currentColumnId) {
-//       await reorderTasks(currentColumnId);
-//       await reorderTasks(newColumnId);
-//     } else {
-//       await reorderTasks(newColumnId);
-//     }
-
-//     res.json({ message: "Task updated successfully" });
-//   } catch (error) {
-//     console.error("Error updating task:", error);
-//     res.status(500).json({ error: "Error updating task" });
-//   }
-// };
-
 // Delete a task
 const deleteTask = async (req, res) => {
   const { id } = req.body;
@@ -328,48 +260,6 @@ const bulkUpdateTasks = async (req, res) => {
     res.status(500).json({ error: "Error bulk updating tasks" });
   }
 };
-
-// const bulkUpdateTasks = async (req, res) => {
-//   const { ids, state } = req.body;
-//   let newColumnId;
-
-//   try {
-//     // Get the new column ID for the given state
-//     const [columns] = await pool.query(
-//       "SELECT id FROM columns WHERE state = ?",
-//       [state]
-//     );
-//     if (columns.length === 0) {
-//       return res.status(400).json({ error: "Invalid state" });
-//     }
-//     newColumnId = columns[0].id;
-
-//     // Find current column ids of tasks to be updated
-//     const [tasks] = await pool.query(
-//       "SELECT id, column_id FROM tasks WHERE id IN (?)",
-//       [ids]
-//     );
-//     const currentColumnIds = tasks.map((task) => task.column_id);
-
-//     // Update the tasks
-//     await pool.query("UPDATE tasks SET column_id = ? WHERE id IN (?)", [
-//       newColumnId,
-//       ids,
-//     ]);
-
-//     // Reorder tasks in affected columns
-//     const uniqueColumnIds = Array.from(new Set(currentColumnIds));
-//     for (const columnId of uniqueColumnIds) {
-//       await reorderTasks(columnId);
-//     }
-//     await reorderTasks(newColumnId);
-
-//     res.json({ message: "Tasks updated successfully" });
-//   } catch (error) {
-//     console.error("Error bulk updating tasks:", error);
-//     res.status(500).json({ error: "Error bulk updating tasks" });
-//   }
-// };
 
 const bulkDeleteTasks = async (req, res) => {
   const { ids } = req.body;
